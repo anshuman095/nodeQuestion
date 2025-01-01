@@ -113,13 +113,13 @@ class EmployeeService {
         const phoneCheckResult = await pool.query(phoneCheckQuery, [
           encryptedPhone,
         ]);
-        console.log("phoneCheckResult.rows---". phoneCheckResult?.rows)
+        console.log("phoneCheckResult.rows---".phoneCheckResult?.rows);
         if (phoneCheckResult?.rows?.length > 0) {
           throw ApiError.badRequest("Phone number must be unique");
         }
-        console.log("444444444444444444444444444444444")
+        console.log("444444444444444444444444444444444");
       }
-      console.log("555555555555555555")
+      console.log("555555555555555555");
 
       const updatedData = {
         department_id: data.department_id || existingEmployee.department_id,
@@ -158,7 +158,6 @@ class EmployeeService {
       if (error.message === "Employee not found") {
         throw ApiError.notFound("Employee not found");
       }
-      console.log("errr--", error.message);
       throw ApiError.internal("Failed to update employee");
     }
   }
@@ -166,14 +165,14 @@ class EmployeeService {
   async deleteEmployee(id) {
     try {
       const existingEmployee = await this.getEmployeeById(id);
-      if (!existingEmployee) {
-        throw ApiError.notFound("Employee not found");
-      }
 
       const query = "DELETE FROM employees WHERE id = $1";
       await pool.query(query, [id]);
       return { message: "Employee deleted successfully" };
     } catch (error) {
+      if (error.message === "Employee not found") {
+        throw ApiError.notFound("Employee not found");
+      }
       throw ApiError.internal("Failed to delete employee");
     }
   }

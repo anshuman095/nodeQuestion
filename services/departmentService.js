@@ -13,7 +13,7 @@ class DepartmentService {
       const result = await pool.query(query, values);
       return result.rows[0];
     } catch (error) {
-      throw new ApiError(500, "Failed to add department");
+      throw ApiError.internal(error.message);
     }
   }
 
@@ -25,7 +25,7 @@ class DepartmentService {
       ]);
 
       if (departmentCheckResult.rows.length === 0) {
-        throw new ApiError(404, "Department not found");
+        throw ApiError.notFound("Department not found");
       }
       const query = `
       SELECT MAX(salary) AS highest_salary, department_id
@@ -39,7 +39,10 @@ class DepartmentService {
       }
       return rows[0];
     } catch (error) {
-      throw new ApiError(500, "Failed to retrieve highest salary");
+      if (error.message === "Department not found") {
+        throw ApiError.notFound("Department not found");
+      }
+      throw ApiError.internal(error.message);
     }
   }
 
@@ -65,7 +68,7 @@ class DepartmentService {
       const { rows } = await pool.query(query);
       return rows;
     } catch (error) {
-      throw new ApiError(500, "Failed to retrieve youngest employees");
+      throw ApiError.internal(error.message);
     }
   }
 }

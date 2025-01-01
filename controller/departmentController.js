@@ -23,7 +23,7 @@ class DepartmentController {
       const departmentId = req.params.id;
 
       if (!departmentId || isNaN(departmentId)) {
-        throw new ApiError(400, "Invalid department ID");
+        return next(ApiError.badRequest("Invalid department ID"));
       }
 
       const result = await departmentService.getHighestSalaryOfDepartment(
@@ -31,7 +31,7 @@ class DepartmentController {
       );
 
       if (!result) {
-        throw new ApiError(404, "No employees found in this department");
+        return next(ApiError.badRequest("No employees found in this department"));
       }
 
       res.status(200).json({
