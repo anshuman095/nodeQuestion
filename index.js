@@ -6,11 +6,16 @@ const app = express();
 const empployeeRoute = require("./routes/employeeRoute");
 const departmentRoute = require("./routes/departmentRoute");
 const errorHandler = require("./middlewares/errorHandler");
+const ApiError = require("./utils/apiError");
+const Messages = require("./utils/messages");
 
 app.use(express.json());
 
 app.use("/api/employee", empployeeRoute);
 app.use("/api/department", departmentRoute);
+app.use((req, res, next) => {
+  next(ApiError.notFound(Messages.URL_NOT_FOUND));
+});
 app.use(errorHandler);
 
 const port = 5000;

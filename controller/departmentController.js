@@ -1,16 +1,21 @@
 const departmentService = require("../services/departmentService");
 const ApiError = require("../utils/apiError");
+const Messages = require("../utils/messages");
+const { StatusCodes } = require("http-status-codes");
 
 class DepartmentController {
   async addDepartment(req, res, next) {
     try {
       if (!req.body.name) {
-        throw new ApiError(400, "Department name is required");
+        throw new ApiError(
+          StatusCodes.BAD_REQUEST,
+          Messages.DEPARTMENT_NAME_REQUIRED
+        );
       }
       const department = await departmentService.addDepartment(req.body);
-      res.status(201).json({
-        status: 201,
-        message: "Department created successfully",
+      res.status(StatusCodes.CREATED).json({
+        status: StatusCodes.CREATED,
+        message: Messages.DEPARTMENT_ADD_SUCCESS,
         data: department,
       });
     } catch (error) {
@@ -23,7 +28,7 @@ class DepartmentController {
       const departmentId = req.params.id;
 
       if (!departmentId || isNaN(departmentId)) {
-        return next(ApiError.badRequest("Invalid department ID"));
+        return next(ApiError.badRequest(Messages.INVALID_DEPARTMENT_ID));
       }
 
       const result = await departmentService.getHighestSalaryOfDepartment(
@@ -31,12 +36,12 @@ class DepartmentController {
       );
 
       if (!result) {
-        return next(ApiError.badRequest("No employees found in this department"));
+        return next(ApiError.badRequest(Messages.NO_EMPLOYEES_IN_DEPARTMENT));
       }
 
-      res.status(200).json({
-        status: 200,
-        message: "Data retrieved successfully",
+      res.status(StatusCodes.OK).json({
+        status: StatusCodes.OK,
+        message: Messages.DATA_SUCCESS,
         data: result,
       });
     } catch (error) {
@@ -48,9 +53,9 @@ class DepartmentController {
     try {
       const employees =
         await departmentService.getYoungestEmployeeInEachDepartment();
-      res.json({
-        status: 200,
-        message: "Data retrieved successfully",
+      res.status(StatusCodes.OK).json({
+        status: StatusCodes.OK,
+        message: Messages.DATA_SUCCESS,
         data: employees,
       });
     } catch (error) {

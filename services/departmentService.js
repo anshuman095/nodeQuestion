@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 const ApiError = require("../utils/apiError");
+const Messages = require("../utils/messages")
 
 class DepartmentService {
   async addDepartment(data) {
@@ -25,7 +26,7 @@ class DepartmentService {
       ]);
 
       if (departmentCheckResult.rows.length === 0) {
-        throw ApiError.notFound("Department not found");
+        throw ApiError.notFound(Messages.DEPARTMENT_NOT_FOUND);
       }
       const query = `
       SELECT MAX(salary) AS highest_salary, department_id
@@ -40,7 +41,7 @@ class DepartmentService {
       return rows[0];
     } catch (error) {
       if (error.message === "Department not found") {
-        throw ApiError.notFound("Department not found");
+        throw ApiError.notFound(Messages.DEPARTMENT_NOT_FOUND);
       }
       throw ApiError.internal(error.message);
     }

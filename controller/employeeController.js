@@ -4,31 +4,38 @@ const {
 } = require("../middlewares/validateRequest");
 const employeeService = require("../services/employeeService");
 const ApiError = require("../utils/apiError");
+const Messages = require("../utils/messages");
+const { StatusCodes } = require("http-status-codes");
 
 class EmployeeController {
   async listEmployees(req, res, next) {
     try {
-      const { limit = 10, page } = req.query;
+      const { pageSize = 10, pageNumber } = req.query;
 
-      if (isNaN(limit) || isNaN(page) || limit <= 0 || page <= 0) {
-        return next(ApiError.badRequest("Invalid limit or page value."));
+      if (
+        isNaN(pageSize) ||
+        isNaN(pageNumber) ||
+        pageSize <= 0 ||
+        pageNumber <= 0
+      ) {
+        return next(ApiError.badRequest(Messages.INVALID_LIMIT_OR_PAGE));
       }
 
-      const offset = (page - 1) * limit;
+      const offset = (pageNumber - 1) * pageSize;
 
       const { employees, totalCount } = await employeeService.listEmployees(
-        limit,
+        pageSize,
         offset
       );
 
-      res.json({
-        status: 200,
-        message: "Data retrieved successfully",
+      res.status(StatusCodes.OK).json({
+        status: StatusCodes.OK,
+        message: Messages.DATA_SUCCESS,
         data: employees,
         metaData: {
           totalCount,
-          totalPages: Math.ceil(totalCount / limit),
-          currentPage: page,
+          totalPages: Math.ceil(totalCount / pageSize),
+          currentPage: pageNumber,
         },
       });
     } catch (error) {
@@ -44,13 +51,12 @@ class EmployeeController {
       }
 
       const employee = await employeeService.addEmployee(req.body);
-      res.status(201).json({
-        status: 201,
-        message: "Employee created successfully",
+      res.status(StatusCodes.CREATED).json({
+        status: StatusCodes.CREATED,
+        message: Messages.EMPLOYEE_ADD_SUCCESS,
         data: employee,
       });
     } catch (error) {
-      console.log("oooooooo", error.message);
       next(error);
     }
   }
@@ -63,9 +69,9 @@ class EmployeeController {
         return next(ApiError.badRequest(error.details[0].message));
       }
       const employee = await employeeService.updateEmployee(id, req.body);
-      res.json({
-        status: 200,
-        message: "Employee updated successfully",
+      res.status(StatusCodes.OK).json({
+        status: StatusCodes.OK,
+        message: Messages.EMPLOYEE_UPDATE_SUCCESS,
         data: employee,
       });
     } catch (error) {
@@ -77,7 +83,9 @@ class EmployeeController {
     try {
       const { id } = req.params;
       const message = await employeeService.deleteEmployee(id);
-      res.json({ status: 202, message: message });
+      res
+        .status(StatusCodes.ACCEPTED)
+        .json({ status: StatusCodes.ACCEPTED, message: message });
     } catch (error) {
       next(error);
     }
@@ -88,7 +96,7 @@ class EmployeeController {
       const { minSalary = 0, maxSalary = Infinity } = req.query;
 
       if (isNaN(minSalary) || (maxSalary !== "Infinity" && isNaN(maxSalary))) {
-        return next(ApiError.badRequest("Invalid salary range values"));
+        return next(ApiError.badRequest(Messages.INVALID_SALARY_RANGE));
       }
 
       const count = await employeeService.getEmployeeCountBySalaryRange(
@@ -96,9 +104,9 @@ class EmployeeController {
         maxSalary === "Infinity" ? Infinity : parseFloat(maxSalary)
       );
 
-      res.json({
-        status: 200,
-        message: "Data retrieved successfully",
+      res.status(StatusCodes.OK).json({
+        status: StatusCodes.OK,
+        message: Messages.DATA_SUCCESS,
         data: count,
       });
     } catch (error) {
