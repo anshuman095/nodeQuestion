@@ -8,6 +8,10 @@ const iv = crypto.randomBytes(16);
 
 class EmployeeService {
   async encryptPhone(phone) {
+    // const cipher = crypto.createCipheriv(algorithm, secretKey, iv);
+    // let encrypted = cipher.update(phone, "utf8", "hex");
+    // encrypted += cipher.final("hex");
+    // return `${iv.toString("hex")}:${encrypted}`;
     const cipher = crypto.createCipheriv(algorithm, secretKey, iv);
     let encrypted = cipher.update(phone, "utf8", "hex");
     encrypted += cipher.final("hex");
@@ -15,6 +19,7 @@ class EmployeeService {
   }
 
   async hashPhone(phone) {
+    // return crypto.createHash("sha256").update(phone).digest("hex");
     return crypto.createHash("sha256").update(phone).digest("hex");
   }
 
@@ -43,22 +48,30 @@ class EmployeeService {
     if (departmentCheckResult.rows.length === 0) {
       throw ApiError.notFound("Department not found");
     }
-    if (data.phone) {
-      var encryptedPhone = await this.encryptPhone(data.phone);
-    }
+    const encryptedPhone = data.phone
+      ? await this.encryptPhone(data.phone)
+      : null;
+    const hashedPhone = data.phone ? await this.hashPhone(data.phone) : null;
+
     const emailCheckQuery = "SELECT * FROM employees WHERE email = $1";
     const emailCheckResult = await pool.query(emailCheckQuery, [data.email]);
     if (emailCheckResult.rows.length > 0) {
       throw ApiError.badRequest("Email must be unique");
     }
 
-    const phoneCheckQuery = "SELECT * FROM employees WHERE phone = $1";
-    const phoneCheckResult = await pool.query(phoneCheckQuery, [
-      encryptedPhone,
-    ]);
-    if (phoneCheckResult.rows.length > 0) {
-      throw ApiError.badRequest("Phone number must be unique");
-    }
+    // const phoneCheckQuery = "SELECT * FROM employees WHERE phone = $1";
+    // const phoneCheckResult = await pool.query(phoneCheckQuery, [
+    //   encryptedPhone,
+    // ]);
+    // if (phoneCheckResult.rows.length > 0) {
+    //   throw ApiError.badRequest("Phone number must be unique");
+    // }
+    // const phoneCheckQuery = "SELECT * FROM employees WHERE phone = $1";
+    // const phoneCheckResult = await pool.query(phoneCheckQuery, [hashedPhone]);
+    // if (phoneCheckResult.rows.length > 0) {
+    //     console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+    //   throw ApiError.badRequest("Phone number must be unique");
+    // }
 
     const query = `
         INSERT INTO employees (department_id, name, dob, phone, photo, email, salary, status)
@@ -68,7 +81,7 @@ class EmployeeService {
       data.department_id,
       data.name,
       data.dob,
-      encryptedPhone,
+      hashedPhone,
       data.photo,
       data.email,
       data.salary,
@@ -78,6 +91,13 @@ class EmployeeService {
       const { rows } = await pool.query(query, values);
       return rows[0];
     } catch (error) {
+      console.log("rrr", error.message);
+      if (
+        error.message ===
+        `duplicate key value violates unique constraint "unique_phone"`
+      ) {
+        throw ApiError.badRequest("Phone number must be unique");
+      }
       throw ApiError.internal("Failed to add employee");
     }
   }
@@ -108,18 +128,31 @@ class EmployeeService {
         // if (phoneCheckResult.rows.length > 0) {
         //   throw ApiError.badRequest("Phone number must be unique");
         // }
-        var encryptedPhone = await this.encryptPhone(data.phone);
-        const phoneCheckQuery = "SELECT * FROM employees WHERE phone = $1";
-        const phoneCheckResult = await pool.query(phoneCheckQuery, [
-          encryptedPhone,
-        ]);
-        console.log("phoneCheckResult.rows---".phoneCheckResult?.rows);
-        if (phoneCheckResult?.rows?.length > 0) {
-          throw ApiError.badRequest("Phone number must be unique");
+        // var encryptedPhone = await this.encryptPhone(data.phone);
+        // console.log("encryptedPhone===", encryptedPhone)
+        // const phoneCheckQuery = "SELECT * FROM employees WHERE phone = $1";
+        // const phoneCheckResult = await pool.query(phoneCheckQuery, [
+        //   encryptedPhone,
+        // ]);
+        // if (phoneCheckResult?.rows?.length > 0) {
+        //     console.log("444444444444444444444444444444444");
+        //   throw ApiError.badRequest("Phone number must be unique");
+        // }
+
+        let hashedPhone = existingEmployee.phone; // Default to existing phone
+        if (data.phone) {
+          hashedPhone = await this.hashPhone(data.phone);
+          const phoneCheckQuery =
+            "SELECT * FROM employees WHERE phone = $1 AND id != $2";
+          const phoneCheckResult = await pool.query(phoneCheckQuery, [
+            hashedPhone,
+            id,
+          ]);
+          if (phoneCheckResult.rows.length > 0) {
+            throw ApiError.badRequest("Phone number must be unique");
+          }
         }
-        console.log("444444444444444444444444444444444");
       }
-      console.log("555555555555555555");
 
       const updatedData = {
         department_id: data.department_id || existingEmployee.department_id,
@@ -155,8 +188,18 @@ class EmployeeService {
       const { rows } = await pool.query(query, values);
       return rows[0];
     } catch (error) {
+      console.log("tttttttttttttttttt==", error.message);
       if (error.message === "Employee not found") {
         throw ApiError.notFound("Employee not found");
+      }
+      if (error.message === "Phone number must be unique") {
+        throw ApiError.badRequest("Phone number must be unique");
+      }
+      if (
+        error.message ===
+        `duplicate key value violates unique constraint "employees_email_key"`
+      ) {
+        throw ApiError.badRequest("Email must be unique");
       }
       throw ApiError.internal("Failed to update employee");
     }
@@ -197,9 +240,7 @@ class EmployeeService {
     try {
       const query = "SELECT * FROM employees WHERE id = $1";
       const { rows } = await pool.query(query, [id]);
-      console.log("rows===", rows);
       if (rows.length === 0) {
-        console.log("555555555555555555555555555555555555555555555");
         throw ApiError.notFound("Employee not found");
       }
       return rows[0];

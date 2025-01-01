@@ -50,6 +50,7 @@ class EmployeeController {
         data: employee,
       });
     } catch (error) {
+        console.log("oooooooo", error.message)
       next(error);
     }
   }
