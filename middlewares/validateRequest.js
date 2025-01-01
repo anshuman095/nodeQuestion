@@ -10,11 +10,6 @@ const employeeSchema = Joi.object({
     "string.empty": "Name cannot be empty",
     "any.required": "Name is required",
   }),
-  //   dob: Joi.date().iso().required().messages({
-  //     "date.base": "Date of Birth must be a valid date",
-  //     "date.format": "Date of Birth must be in ISO format (YYYY-MM-DD)",
-  //     "any.required": "Date of Birth is required",
-  //   }),
   dob: Joi.alternatives()
     .try(Joi.date().iso(), Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/))
     .required()
@@ -60,9 +55,6 @@ const updateEmployeeSchema = Joi.object({
     "string.base": "Name must be a string",
     "string.empty": "Name cannot be empty",
   }),
-  // dob: Joi.date().optional().messages({
-  //   "date.base": "Date of Birth must be a valid date",
-  // }),
   dob: Joi.alternatives()
     .try(Joi.date().iso(), Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/))
     .messages({
