@@ -50,7 +50,7 @@ class EmployeeController {
         data: employee,
       });
     } catch (error) {
-        console.log("oooooooo", error.message)
+      console.log("oooooooo", error.message);
       next(error);
     }
   }
@@ -77,7 +77,7 @@ class EmployeeController {
     try {
       const { id } = req.params;
       const message = await employeeService.deleteEmployee(id);
-      res.json({ message });
+      res.json({ status: 202, message: message });
     } catch (error) {
       next(error);
     }

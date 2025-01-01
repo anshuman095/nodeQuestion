@@ -211,7 +211,7 @@ class EmployeeService {
 
       const query = "DELETE FROM employees WHERE id = $1";
       await pool.query(query, [id]);
-      return { message: "Employee deleted successfully" };
+      return "Employee deleted successfully";
     } catch (error) {
       if (error.message === "Employee not found") {
         throw ApiError.notFound("Employee not found");
