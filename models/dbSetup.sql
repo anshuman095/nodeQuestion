@@ -1,0 +1,44 @@
+-- CREATE TABLE departments (
+--     id SERIAL PRIMARY KEY,
+--     name VARCHAR(255) NOT NULL,
+--     status BOOLEAN DEFAULT true,
+--     created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- );
+
+-- CREATE TABLE employees (
+--     id SERIAL PRIMARY KEY,
+--     department_id INT REFERENCES departments(id),
+--     name VARCHAR(255) NOT NULL,
+--     dob DATE NOT NULL,
+--     phone VARCHAR(255) NOT NULL,
+--     photo VARCHAR(255) NOT NULL,
+--     email VARCHAR(255) UNIQUE NOT NULL,
+--     salary NUMERIC NOT NULL,
+--     status BOOLEAN DEFAULT true,
+--     created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- );
+
+
+CREATE TABLE IF NOT EXISTS departments (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    status BOOLEAN DEFAULT true,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS employees (
+    id SERIAL PRIMARY KEY,
+    department_id INT REFERENCES departments(id),
+    name VARCHAR(255) NOT NULL,
+    dob DATE NOT NULL,
+    phone VARCHAR(255) UNIQUE NOT NULL,
+    photo VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    salary NUMERIC NOT NULL,
+    status BOOLEAN DEFAULT true,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
